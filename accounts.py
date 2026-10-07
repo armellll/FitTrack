@@ -35,12 +35,24 @@ class User:
     def height_cm(self):
         return self._height_cm
 
-    def update_profile(self, db, full_name, weight_text, height_text):
+    @staticmethod
+    def clean_profile(full_name, weight_text, height_text):
+        """Check the profile fields and return clean values. Saves nothing."""
         full_name = Validator.required(full_name, "Full name")
+        if len(full_name) > 60:
+            raise ValueError("Full name must be 60 characters or less.")
         weight = Validator.decimal_number(weight_text, "Weight", minimum=1,
                                           required=False, default=None)
         height = Validator.decimal_number(height_text, "Height", minimum=1,
                                           required=False, default=None)
+        if weight is not None and weight > 500:
+            raise ValueError("Weight must be 500 kg or less.")
+        if height is not None and height > 300:
+            raise ValueError("Height must be 300 cm or less.")
+        return full_name, weight, height
+
+    def update_profile(self, db, full_name, weight_text, height_text):
+        full_name, weight, height = self.clean_profile(full_name, weight_text, height_text)
         db.execute("UPDATE users SET full_name = ?, weight_kg = ?, height_cm = ? WHERE id = ?",
                    (full_name, weight, height, self._id))
         self._full_name = full_name
@@ -79,6 +91,8 @@ class Auth:
 
     def register(self, full_name, username, password, confirm):
         full_name = Validator.required(full_name, "Full name")
+        if len(full_name) > 60:
+            raise ValueError("Full name must be 60 characters or less.")
         username = Validator.username(username)
         password = Validator.password(password)
         if password != confirm:
@@ -102,11 +116,17 @@ class Auth:
     def logout(self):
         self._current_user = None
 
-    def change_password(self, new_password, confirm):
+    def change_password(self, current_password, new_password, confirm):
         if self._current_user is None:
             raise ValueError("You must be logged in.")
+        if not current_password:
+            raise ValueError("Enter your current password to change it.")
+        row = self._db.fetch_one("SELECT password_hash FROM users WHERE id = ?",
+                                 (self._current_user.id,))
+        if row is None or not self._verify_password(current_password, row["password_hash"]):
+            raise ValueError("Your current password is wrong.")
         new_password = Validator.password(new_password)
         if new_password != confirm:
-            raise ValueError("Passwords do not match.")
+            raise ValueError("The new passwords do not match.")
         self._db.execute("UPDATE users SET password_hash = ? WHERE id = ?",
                          (self._make_stored_password(new_password), self._current_user.id))

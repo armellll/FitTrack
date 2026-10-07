@@ -7,6 +7,7 @@ from sessions import SessionManager
 from goals import GoalManager
 from history import WorkoutHistory
 from progress import ProgressTracker
+from dashboard import DashboardData
 from gui import DashboardFrame
 from login_frame import LoginFrame, RegisterFrame
 from workouts_frame import WorkoutsFrame
@@ -36,6 +37,8 @@ class FitTrackApp(ctk.CTk):
         self.goal_manager = GoalManager(self.db)
         self.workout_history = WorkoutHistory(self.db)
         self.progress_tracker = ProgressTracker(self.db)
+        self.dashboard_data = DashboardData(self.db, self.goal_manager,
+                                            self.workout_history)
 
         self.content = None
         self.current_frame = None
@@ -44,9 +47,11 @@ class FitTrackApp(ctk.CTk):
         self.screens = {
             "Dashboard": lambda parent: DashboardFrame(
                 parent, user_name=self.auth.current_user.full_name.split()[0],
+                data=self.dashboard_data.build(self.auth.current_user.id),
                 on_start_workout=lambda: self.navigate("Record"),
                 on_add_exercise=lambda: self.navigate("Workouts"),
                 on_view_history=lambda: self.navigate("History & Progress"),
+                on_view_goals=lambda: self.navigate("Goals"),
                 on_logout=self.logout),
             "Workouts": lambda parent: WorkoutsFrame(
                 parent, self.exercise_manager, self.plan_manager,
@@ -60,9 +65,7 @@ class FitTrackApp(ctk.CTk):
             "History & Progress": lambda parent: HistoryProgressFrame(
                 parent, self.workout_history, self.progress_tracker,
                 self.auth.current_user.id),
-            "Profile": lambda parent: ProfileFrame(
-                parent, full_name=self.auth.current_user.full_name,
-                username=self.auth.current_user.username),
+            "Profile": lambda parent: ProfileFrame(parent, self.auth, self.db),
         }
 
         self.show_login()
