@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import theme
 from accounts import Auth
 from database import DatabaseManager
 from exercises import ExerciseManager
@@ -65,7 +66,8 @@ class FitTrackApp(ctk.CTk):
             "History & Progress": lambda parent: HistoryProgressFrame(
                 parent, self.workout_history, self.progress_tracker,
                 self.auth.current_user.id),
-            "Profile": lambda parent: ProfileFrame(parent, self.auth, self.db),
+            "Profile": lambda parent: ProfileFrame(
+                parent, self.auth, self.db, on_toggle_theme=self.toggle_theme),
         }
 
         self.show_login()
@@ -73,6 +75,13 @@ class FitTrackApp(ctk.CTk):
     def on_close(self):
         self.db.close()
         self.destroy()
+
+    # ---------- theme ----------
+    def toggle_theme(self):
+        new_mode = "dark" if theme.MODE == "light" else "light"
+        theme.set_mode(new_mode)
+        self.configure(fg_color=theme.BG)
+        self.show_app(start="Profile")
 
     # ---------- window level screens ----------
     def clear_window(self):
@@ -101,49 +110,46 @@ class FitTrackApp(ctk.CTk):
         self.auth.logout()
         self.show_login()
 
-    def show_app(self):
+    def show_app(self, start="Dashboard"):
         self.clear_window()
         self.build_sidebar()
         self.content = ctk.CTkFrame(self, fg_color="transparent")
         self.content.pack(side="right", fill="both", expand=True)
-        self.navigate("Dashboard")
+        self.navigate(start)
 
     # ---------- sidebar and navigation ----------
     def build_sidebar(self):
-        sidebar = ctk.CTkFrame(self, width=200, corner_radius=0)
+        sidebar = ctk.CTkFrame(self, width=200, corner_radius=0,
+                               fg_color=theme.SIDEBAR)
         sidebar.pack(side="left", fill="y")
         sidebar.pack_propagate(False)
 
-        ctk.CTkLabel(sidebar, text="💪 FitTrack",
+        ctk.CTkLabel(sidebar, text="💪 FitTrack", text_color=theme.PRIMARY,
                      font=ctk.CTkFont(size=22, weight="bold")
                      ).pack(padx=20, pady=(24, 20))
 
         for name in self.NAV_ITEMS:
             btn = ctk.CTkButton(
                 sidebar, text=name, anchor="w", height=38,
-                fg_color="transparent", text_color=("gray10", "gray90"),
-                hover_color=("gray70", "gray30"),
-                command=lambda n=name: self.navigate(n))
+                command=lambda n=name: self.navigate(n),
+                **theme.nav_button())
             btn.pack(fill="x", padx=12, pady=2)
             self.nav_buttons[name] = btn
 
         ctk.CTkButton(sidebar, text="Logout", height=38,
-                      fg_color="#c0392b", hover_color="#962d22",
-                      command=self.logout
+                      command=self.logout, **theme.danger_button()
                       ).pack(side="bottom", fill="x", padx=12, pady=20)
 
     def navigate(self, name):
         if self.current_frame is not None:
             self.current_frame.destroy()
         for key, btn in self.nav_buttons.items():
-            btn.configure(fg_color=("gray75", "gray25") if key == name
-                          else "transparent")
+            btn.configure(**theme.nav_button(key == name))
         self.current_frame = self.screens[name](self.content)
         self.current_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
 
 if __name__ == "__main__":
-    ctk.set_appearance_mode("dark")
-    ctk.set_default_color_theme("blue")
+    theme.apply()
     app = FitTrackApp()
     app.mainloop()

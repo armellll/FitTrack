@@ -3,6 +3,7 @@ import tkinter.messagebox as messagebox
 from datetime import date
 
 import customtkinter as ctk
+import theme
 from sessions import WorkoutSession
 from ui_helpers import page_header, make_card
 
@@ -73,15 +74,14 @@ class RecordingFrame(ctk.CTkFrame):
         self.minutes_entry = ctk.CTkEntry(bottom, width=80, placeholder_text="auto")
         self.minutes_entry.pack(side="left", padx=8)
         ctk.CTkButton(bottom, text="Finish and Save", height=36,
-                      fg_color="#27ae60", hover_color="#1e8449", command=self.finish
+                      command=self.finish, **theme.success_button()
                       ).pack(side="right")
 
         self.render_rows()
 
     # ---------- helpers ----------
     def show_message(self, text, ok):
-        color = "#2ecc71" if ok else "#e74c3c"
-        self.message_label.configure(text=text, text_color=color)
+        self.message_label.configure(text=text, text_color=theme.message_color(ok))
 
     @staticmethod
     def new_item(exercise, sets=3, value=None):
@@ -113,17 +113,17 @@ class RecordingFrame(ctk.CTkFrame):
 
         if not self.active:
             ctk.CTkLabel(self.rows_frame, text="Choose a plan and click Start Workout.",
-                         text_color="gray60").grid(row=0, column=0, pady=30)
+                         text_color=theme.MUTED).grid(row=0, column=0, pady=30)
             return
         if not self.draft:
             ctk.CTkLabel(self.rows_frame,
                          text="No exercises yet.\nPick one below and click Add Exercise.",
-                         text_color="gray60").grid(row=0, column=0, pady=30)
+                         text_color=theme.MUTED).grid(row=0, column=0, pady=30)
             return
 
         headers = ["Exercise", "Sets", "Reps", "Weight (kg)", "Time (sec)"]
         for col, text in enumerate(headers):
-            ctk.CTkLabel(self.rows_frame, text=text, text_color="gray60", anchor="w"
+            ctk.CTkLabel(self.rows_frame, text=text, text_color=theme.MUTED, anchor="w"
                          ).grid(row=0, column=col, sticky="w", padx=6)
 
         for index, item in enumerate(self.draft):
@@ -143,8 +143,8 @@ class RecordingFrame(ctk.CTkFrame):
             })
 
             ctk.CTkButton(self.rows_frame, text="✕", width=30, height=26,
-                          fg_color="#c0392b", hover_color="#962d22",
-                          command=lambda i=index: self.remove_row(i)
+                          command=lambda i=index: self.remove_row(i),
+                          **theme.danger_button()
                           ).grid(row=row, column=5, padx=4)
 
     def sync_draft(self):

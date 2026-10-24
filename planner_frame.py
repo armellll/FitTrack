@@ -1,7 +1,8 @@
 import tkinter.messagebox as messagebox
 
 import customtkinter as ctk
-from ui_helpers import page_header, make_card
+import theme
+from ui_helpers import page_header, make_card, make_row
 
 
 class PlannerFrame(ctk.CTkFrame):
@@ -48,23 +49,22 @@ class PlannerFrame(ctk.CTkFrame):
         plans = self.plan_manager.list_plans(self.user_id)
         if not plans:
             ctk.CTkLabel(self.plans_frame, text="No plans yet.\nClick New Plan to create one.",
-                         text_color="gray60").pack(pady=20)
+                         text_color=theme.MUTED).pack(pady=20)
             return
 
         for plan in plans:
-            selected = plan.id == self.plan_id
-            row = ctk.CTkFrame(self.plans_frame,
-                               fg_color=("gray70", "gray30") if selected else None)
+            row = make_row(self.plans_frame, selected=(plan.id == self.plan_id))
             row.pack(fill="x", padx=4, pady=4)
             row.grid_columnconfigure(0, weight=1)
             ctk.CTkLabel(row, text=plan.name, anchor="w",
                          font=ctk.CTkFont(weight="bold")
                          ).grid(row=0, column=0, sticky="w", padx=12, pady=(8, 0))
             ctk.CTkLabel(row, text=f"{plan.exercise_count} exercises", anchor="w",
-                         text_color="gray60"
+                         text_color=theme.MUTED
                          ).grid(row=1, column=0, sticky="w", padx=12, pady=(0, 8))
             ctk.CTkButton(row, text="Open", width=60, height=26,
-                          command=lambda p=plan: self.open_plan(p)
+                          command=lambda p=plan: self.open_plan(p),
+                          **theme.secondary_button()
                           ).grid(row=0, column=1, rowspan=2, padx=10)
 
     # ---------- right side: the editor ----------
@@ -72,7 +72,8 @@ class PlannerFrame(ctk.CTkFrame):
         card = make_card(body, "Plan Editor")
         card.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
-        self.mode_label = ctk.CTkLabel(card, text="New plan", text_color="gray60", anchor="w")
+        self.mode_label = ctk.CTkLabel(card, text="New plan", text_color=theme.MUTED,
+                                       anchor="w")
         self.mode_label.pack(fill="x", padx=16, pady=(0, 8))
 
         ctk.CTkLabel(card, text="Plan name", anchor="w").pack(fill="x", padx=16)
@@ -97,15 +98,12 @@ class PlannerFrame(ctk.CTkFrame):
 
         ctk.CTkButton(card, text="Save Plan", height=38, command=self.save
                       ).pack(fill="x", padx=16, pady=(4, 4))
-        ctk.CTkButton(card, text="Delete Plan", height=32,
-                      fg_color="transparent", border_width=2,
-                      text_color="#e74c3c", border_color="#e74c3c",
-                      command=self.delete_plan
+        ctk.CTkButton(card, text="Delete Plan", height=32, command=self.delete_plan,
+                      **theme.danger_outline_button()
                       ).pack(fill="x", padx=16, pady=(4, 16))
 
     def show_message(self, text, ok):
-        color = "#2ecc71" if ok else "#e74c3c"
-        self.message_label.configure(text=text, text_color=color)
+        self.message_label.configure(text=text, text_color=theme.message_color(ok))
 
     def render_table(self):
         for widget in self.table_frame.winfo_children():
@@ -115,11 +113,11 @@ class PlannerFrame(ctk.CTkFrame):
         if not self.draft:
             ctk.CTkLabel(self.table_frame,
                          text="No exercises in this plan yet.\nPick one below and click Add Exercise.",
-                         text_color="gray60").grid(row=0, column=0, columnspan=5, pady=20)
+                         text_color=theme.MUTED).grid(row=0, column=0, columnspan=5, pady=20)
             return
 
         for col, text in enumerate(["Exercise", "Sets", "Target"]):
-            ctk.CTkLabel(self.table_frame, text=text, text_color="gray60", anchor="w"
+            ctk.CTkLabel(self.table_frame, text=text, text_color=theme.MUTED, anchor="w"
                          ).grid(row=0, column=col, sticky="w", padx=4)
 
         for index, item in enumerate(self.draft):
@@ -136,12 +134,12 @@ class PlannerFrame(ctk.CTkFrame):
             value_entry.grid(row=row, column=2, padx=4)
 
             unit = "reps" if item["kind"] == "reps" else "sec"
-            ctk.CTkLabel(self.table_frame, text=unit, text_color="gray60", width=36
+            ctk.CTkLabel(self.table_frame, text=unit, text_color=theme.MUTED, width=36
                          ).grid(row=row, column=3)
 
             ctk.CTkButton(self.table_frame, text="✕", width=30, height=26,
-                          fg_color="#c0392b", hover_color="#962d22",
-                          command=lambda i=index: self.remove_row(i)
+                          command=lambda i=index: self.remove_row(i),
+                          **theme.danger_button()
                           ).grid(row=row, column=4, padx=4)
 
             self.row_widgets.append((sets_entry, value_entry))

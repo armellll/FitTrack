@@ -1,8 +1,9 @@
 import tkinter.messagebox as messagebox
 
 import customtkinter as ctk
+import theme
 from history import describe_entry
-from ui_helpers import page_header, make_card
+from ui_helpers import page_header, make_card, make_row
 
 
 class HistoryFrame(ctk.CTkFrame):
@@ -34,12 +35,12 @@ class HistoryFrame(ctk.CTkFrame):
 
         ctk.CTkButton(bar, text="Filter", width=80, command=self.apply_filter
                       ).grid(row=0, column=3, padx=(0, 6))
-        ctk.CTkButton(bar, text="Clear", width=70, fg_color="transparent",
-                      border_width=2, command=self.clear_filter
+        ctk.CTkButton(bar, text="Clear", width=70, command=self.clear_filter,
+                      **theme.outline_button()
                       ).grid(row=0, column=4)
 
-        self.message_label = ctk.CTkLabel(filter_card, text="", text_color="#e74c3c",
-                                          anchor="w")
+        self.message_label = ctk.CTkLabel(filter_card, text="",
+                                          text_color=theme.ERROR_TEXT, anchor="w")
         self.message_label.pack(fill="x", padx=16, pady=(0, 10))
 
         # ---------- two columns ----------
@@ -59,7 +60,7 @@ class HistoryFrame(ctk.CTkFrame):
     def build_sessions(self, body):
         card = make_card(body, "Past Sessions")
         card.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-        self.count_label = ctk.CTkLabel(card, text="", text_color="gray60", anchor="w")
+        self.count_label = ctk.CTkLabel(card, text="", text_color=theme.MUTED, anchor="w")
         self.count_label.pack(fill="x", padx=16)
         self.rows_frame = ctk.CTkScrollableFrame(card, fg_color="transparent")
         self.rows_frame.pack(fill="both", expand=True, padx=8, pady=(4, 12))
@@ -78,29 +79,29 @@ class HistoryFrame(ctk.CTkFrame):
                 message = "No workouts match your filters."
             else:
                 message = "No workouts saved yet.\nRecord one in the Record screen."
-            ctk.CTkLabel(self.rows_frame, text=message, text_color="gray60").pack(pady=30)
+            ctk.CTkLabel(self.rows_frame, text=message,
+                         text_color=theme.MUTED).pack(pady=30)
             return
 
         for session in sessions:
-            selected = session.id == self.selected_id
-            row = ctk.CTkFrame(self.rows_frame,
-                               fg_color=("gray70", "gray30") if selected else None)
+            row = make_row(self.rows_frame, selected=(session.id == self.selected_id))
             row.pack(fill="x", padx=4, pady=3)
             row.grid_columnconfigure(1, weight=1)
 
-            ctk.CTkLabel(row, text=session.session_date, text_color="gray60", width=90
+            ctk.CTkLabel(row, text=session.session_date, text_color=theme.MUTED, width=90
                          ).grid(row=0, column=0, padx=(10, 0), pady=8)
             ctk.CTkLabel(row, anchor="w",
                          text=f"{session.plan_name}  ({session.completed_count}/{session.total_count} done)"
                          ).grid(row=0, column=1, sticky="w", padx=10)
-            ctk.CTkLabel(row, text=f"{session.duration_min} min", text_color="gray60",
+            ctk.CTkLabel(row, text=f"{session.duration_min} min", text_color=theme.MUTED,
                          width=70).grid(row=0, column=2)
             ctk.CTkButton(row, text="View", width=55, height=26,
-                          command=lambda s=session: self.view(s)
+                          command=lambda s=session: self.view(s),
+                          **theme.secondary_button()
                           ).grid(row=0, column=3, padx=4)
             ctk.CTkButton(row, text="Delete", width=60, height=26,
-                          fg_color="#c0392b", hover_color="#962d22",
-                          command=lambda s=session: self.delete_session(s)
+                          command=lambda s=session: self.delete_session(s),
+                          **theme.danger_button()
                           ).grid(row=0, column=4, padx=(0, 10))
 
     # ---------- right side: details ----------
@@ -110,7 +111,8 @@ class HistoryFrame(ctk.CTkFrame):
         self.details_title = ctk.CTkLabel(card, text="", anchor="w",
                                           font=ctk.CTkFont(weight="bold"))
         self.details_title.pack(fill="x", padx=16)
-        self.details_sub = ctk.CTkLabel(card, text="", anchor="w", text_color="gray60")
+        self.details_sub = ctk.CTkLabel(card, text="", anchor="w",
+                                        text_color=theme.MUTED)
         self.details_sub.pack(fill="x", padx=16, pady=(0, 6))
         self.details_frame = ctk.CTkScrollableFrame(card, fg_color="transparent")
         self.details_frame.pack(fill="both", expand=True, padx=8, pady=(0, 12))
@@ -122,7 +124,7 @@ class HistoryFrame(ctk.CTkFrame):
         for widget in self.details_frame.winfo_children():
             widget.destroy()
         ctk.CTkLabel(self.details_frame, text="Select a session and click View.",
-                     text_color="gray60").pack(pady=30)
+                     text_color=theme.MUTED).pack(pady=30)
 
     def view(self, session):
         entries = self.history_manager.get_entries(self.user_id, session.id)
@@ -136,12 +138,11 @@ class HistoryFrame(ctk.CTkFrame):
             widget.destroy()
         for entry in entries:
             mark = "✔" if entry.done else "○"
-            color = "gray60" if not entry.done else None
             ctk.CTkLabel(self.details_frame, text=f"{mark}  {entry.exercise_name}",
                          anchor="w", font=ctk.CTkFont(weight="bold")
                          ).pack(fill="x", padx=8, pady=(6, 0))
             ctk.CTkLabel(self.details_frame, text=describe_entry(entry), anchor="w",
-                         text_color="gray60" if color else ("gray10", "gray90")
+                         text_color=theme.TEXT if entry.done else theme.MUTED
                          ).pack(fill="x", padx=8)
         self.refresh_list()
 

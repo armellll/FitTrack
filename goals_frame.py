@@ -1,9 +1,10 @@
 import tkinter.messagebox as messagebox
 
 import customtkinter as ctk
+import theme
 from exercises import ExerciseManager
 from goals import GOAL_TYPES, format_number
-from ui_helpers import page_header, make_card
+from ui_helpers import page_header, make_card, make_row
 
 
 class GoalsFrame(ctk.CTkFrame):
@@ -39,7 +40,7 @@ class GoalsFrame(ctk.CTkFrame):
         form = ctk.CTkScrollableFrame(card, fg_color="transparent")
         form.pack(fill="both", expand=True, padx=4, pady=(0, 8))
 
-        self.mode_label = ctk.CTkLabel(form, text="New goal", text_color="gray60",
+        self.mode_label = ctk.CTkLabel(form, text="New goal", text_color=theme.MUTED,
                                        anchor="w")
         self.mode_label.pack(fill="x", padx=12, pady=(0, 6))
 
@@ -74,8 +75,8 @@ class GoalsFrame(ctk.CTkFrame):
         self.save_button = ctk.CTkButton(form, text="Save Goal", height=38,
                                          command=self.save)
         self.save_button.pack(fill="x", padx=12, pady=4)
-        ctk.CTkButton(form, text="Clear", height=32, fg_color="transparent",
-                      border_width=2, command=self.clear_form
+        ctk.CTkButton(form, text="Clear", height=32, command=self.clear_form,
+                      **theme.outline_button()
                       ).pack(fill="x", padx=12, pady=(4, 8))
 
     def current_code(self):
@@ -110,8 +111,7 @@ class GoalsFrame(ctk.CTkFrame):
         self.target_menu.set(selected if selected else values[0])
 
     def show_message(self, text, ok):
-        color = "#2ecc71" if ok else "#e74c3c"
-        self.message_label.configure(text=text, text_color=color)
+        self.message_label.configure(text=text, text_color=theme.message_color(ok))
 
     def clear_form(self):
         self.editing_id = None
@@ -152,50 +152,51 @@ class GoalsFrame(ctk.CTkFrame):
         if not goals:
             ctk.CTkLabel(self.rows_frame,
                          text="No goals yet.\nCreate your first goal on the left.",
-                         text_color="gray60").pack(pady=30)
+                         text_color=theme.MUTED).pack(pady=30)
             return
         for goal in goals:
             self.add_card(goal)
 
     def add_card(self, goal):
-        box = ctk.CTkFrame(self.rows_frame)
+        box = make_row(self.rows_frame)
         box.pack(fill="x", padx=4, pady=5)
         box.grid_columnconfigure(0, weight=1)
 
         title = goal.title + ("   ✔" if goal.achieved else "")
         ctk.CTkLabel(box, text=title, anchor="w", font=ctk.CTkFont(weight="bold")
                      ).grid(row=0, column=0, sticky="w", padx=14, pady=(10, 0))
-        ctk.CTkLabel(box, text=goal.subtitle, anchor="w", text_color="gray60",
+        ctk.CTkLabel(box, text=goal.subtitle, anchor="w", text_color=theme.MUTED,
                      font=ctk.CTkFont(size=12)
                      ).grid(row=1, column=0, sticky="w", padx=14)
 
-        bar_options = {"progress_color": "#2ecc71"} if goal.achieved else {}
-        bar = ctk.CTkProgressBar(box, **bar_options)
+        bar_options = {"progress_color": theme.SUCCESS} if goal.achieved else {}
+        bar = ctk.CTkProgressBar(box, fg_color=theme.CARD, **bar_options)
         bar.grid(row=2, column=0, sticky="ew", padx=14, pady=(6, 0))
         bar.set(goal.get_progress())
 
-        ctk.CTkLabel(box, text=goal.progress_text(), anchor="w", text_color="gray60",
+        ctk.CTkLabel(box, text=goal.progress_text(), anchor="w", text_color=theme.MUTED,
                      font=ctk.CTkFont(size=12)
                      ).grid(row=3, column=0, sticky="w", padx=14)
 
         if goal.achieved:
-            status, color = "Goal achieved!", "#2ecc71"
+            status, color = "Goal achieved!", theme.SUCCESS
         elif goal.is_overdue:
-            status, color = f"Overdue since {goal.deadline}", "#e74c3c"
+            status, color = f"Overdue since {goal.deadline}", theme.ERROR_TEXT
         elif goal.deadline:
-            status, color = f"Deadline: {goal.deadline}", "gray60"
+            status, color = f"Deadline: {goal.deadline}", theme.MUTED
         else:
-            status, color = "No deadline", "gray60"
+            status, color = "No deadline", theme.MUTED
         ctk.CTkLabel(box, text=status, anchor="w", text_color=color,
                      font=ctk.CTkFont(size=12)
                      ).grid(row=4, column=0, sticky="w", padx=14, pady=(0, 10))
 
         ctk.CTkButton(box, text="Edit", width=55, height=26,
-                      command=lambda g=goal: self.start_edit(g)
+                      command=lambda g=goal: self.start_edit(g),
+                      **theme.secondary_button()
                       ).grid(row=0, column=1, padx=4, pady=(10, 0))
         ctk.CTkButton(box, text="Delete", width=60, height=26,
-                      fg_color="#c0392b", hover_color="#962d22",
-                      command=lambda g=goal: self.delete_goal(g)
+                      command=lambda g=goal: self.delete_goal(g),
+                      **theme.danger_button()
                       ).grid(row=0, column=2, padx=(0, 10), pady=(10, 0))
 
     # ---------- actions ----------

@@ -1,8 +1,9 @@
 import tkinter.messagebox as messagebox
 
 import customtkinter as ctk
+import theme
 from exercises import ExerciseManager, KIND_LABELS
-from ui_helpers import page_header, make_card
+from ui_helpers import page_header, make_card, make_row
 
 LABEL_TO_KIND = {label: kind for kind, label in KIND_LABELS.items()}
 
@@ -57,27 +58,28 @@ class ExercisesFrame(ctk.CTkFrame):
 
         if not exercises:
             ctk.CTkLabel(self.rows_frame, text="No exercises found.",
-                         text_color="gray60").pack(pady=20)
+                         text_color=theme.MUTED).pack(pady=20)
             return
         for exercise in exercises:
             self.add_row(exercise)
 
     def add_row(self, exercise):
-        row = ctk.CTkFrame(self.rows_frame)
+        row = make_row(self.rows_frame)
         row.pack(fill="x", padx=4, pady=3)
         row.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(row, text=exercise.name, anchor="w"
                      ).grid(row=0, column=0, sticky="w", padx=12, pady=8)
-        ctk.CTkLabel(row, text=exercise.category, text_color="gray60", width=80
+        ctk.CTkLabel(row, text=exercise.category, text_color=theme.MUTED, width=80
                      ).grid(row=0, column=1)
-        ctk.CTkLabel(row, text=exercise.kind_label, text_color="gray60", width=110
+        ctk.CTkLabel(row, text=exercise.kind_label, text_color=theme.MUTED, width=110
                      ).grid(row=0, column=2)
         ctk.CTkButton(row, text="Edit", width=55, height=26,
-                      command=lambda ex=exercise: self.start_edit(ex)
+                      command=lambda ex=exercise: self.start_edit(ex),
+                      **theme.secondary_button()
                       ).grid(row=0, column=3, padx=4)
         ctk.CTkButton(row, text="Delete", width=60, height=26,
-                      fg_color="#c0392b", hover_color="#962d22",
-                      command=lambda ex=exercise: self.delete_exercise(ex)
+                      command=lambda ex=exercise: self.delete_exercise(ex),
+                      **theme.danger_button()
                       ).grid(row=0, column=4, padx=(0, 10))
 
     # ---------- right side: the form ----------
@@ -86,7 +88,7 @@ class ExercisesFrame(ctk.CTkFrame):
         card.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
         self.mode_label = ctk.CTkLabel(card, text="New exercise",
-                                       text_color="gray60", anchor="w")
+                                       text_color=theme.MUTED, anchor="w")
         self.mode_label.pack(fill="x", padx=16, pady=(0, 8))
 
         ctk.CTkLabel(card, text="Name", anchor="w").pack(fill="x", padx=16)
@@ -108,13 +110,12 @@ class ExercisesFrame(ctk.CTkFrame):
         self.save_button = ctk.CTkButton(card, text="Save Exercise", height=38,
                                          command=self.save)
         self.save_button.pack(fill="x", padx=16, pady=4)
-        ctk.CTkButton(card, text="Clear", height=32, fg_color="transparent",
-                      border_width=2, command=self.clear_form
+        ctk.CTkButton(card, text="Clear", height=32, command=self.clear_form,
+                      **theme.outline_button()
                       ).pack(fill="x", padx=16, pady=(4, 16))
 
     def show_message(self, text, ok):
-        color = "#2ecc71" if ok else "#e74c3c"
-        self.message_label.configure(text=text, text_color=color)
+        self.message_label.configure(text=text, text_color=theme.message_color(ok))
 
     def clear_form(self):
         self.editing_id = None

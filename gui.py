@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from datetime import date
+import theme
 
 
 class DashboardFrame(ctk.CTkScrollableFrame):
@@ -27,18 +28,18 @@ class DashboardFrame(ctk.CTkScrollableFrame):
 
     # ---------- helpers ----------
     def make_card(self, row, column, columnspan=1, title=""):
-        card = ctk.CTkFrame(self, corner_radius=14)
+        card = ctk.CTkFrame(self, corner_radius=14, fg_color=theme.CARD)
         card.grid(row=row, column=column, columnspan=columnspan,
                   padx=10, pady=10, sticky="nsew")
         if title:
-            ctk.CTkLabel(card, text=title,
+            ctk.CTkLabel(card, text=title, text_color=theme.PRIMARY,
                          font=ctk.CTkFont(size=16, weight="bold")
                          ).pack(anchor="w", padx=16, pady=(14, 6))
         return card
 
     @staticmethod
     def empty_message(card, text):
-        ctk.CTkLabel(card, text=text, text_color="gray60", justify="left"
+        ctk.CTkLabel(card, text=text, text_color=theme.MUTED, justify="left"
                      ).pack(anchor="w", padx=16, pady=(4, 16))
 
     # ---------- sections ----------
@@ -49,15 +50,15 @@ class DashboardFrame(ctk.CTkScrollableFrame):
         header.grid_columnconfigure(0, weight=1)
 
         ctk.CTkLabel(header, text=f"Welcome back, {self.user_name}!",
+                     text_color=theme.PRIMARY,
                      font=ctk.CTkFont(size=26, weight="bold")
                      ).grid(row=0, column=0, sticky="w")
         ctk.CTkLabel(header,
                      text=f"Your fitness overview for {today:%A, %B} {today.day}",
-                     text_color="gray60"
+                     text_color=theme.MUTED
                      ).grid(row=1, column=0, sticky="w")
         ctk.CTkButton(header, text="Logout", width=90,
-                      fg_color="#c0392b", hover_color="#962d22",
-                      command=self.on_logout
+                      command=self.on_logout, **theme.danger_button()
                       ).grid(row=0, column=1, rowspan=2, sticky="e")
 
     def build_stat_cards(self):
@@ -72,12 +73,12 @@ class DashboardFrame(ctk.CTkScrollableFrame):
             ("Minutes This Week", stats["total_minutes"]),
         ]
         for i, (label, value) in enumerate(items):
-            card = ctk.CTkFrame(row, corner_radius=14)
+            card = ctk.CTkFrame(row, corner_radius=14, fg_color=theme.CARD)
             card.grid(row=0, column=i, padx=10, pady=10, sticky="nsew")
-            ctk.CTkLabel(card, text=str(value),
+            ctk.CTkLabel(card, text=str(value), text_color=theme.PRIMARY,
                          font=ctk.CTkFont(size=32, weight="bold")
                          ).pack(padx=16, pady=(14, 0))
-            ctk.CTkLabel(card, text=label, text_color="gray60"
+            ctk.CTkLabel(card, text=label, text_color=theme.MUTED
                          ).pack(padx=16, pady=(0, 14))
 
     def build_today_workout(self):
@@ -94,7 +95,7 @@ class DashboardFrame(ctk.CTkScrollableFrame):
 
         card = self.make_card(2, 0, title=f"Today: {today['plan_name']}")
         ctk.CTkLabel(card, text=f"{done} of {total} exercises done",
-                     text_color="gray60").pack(anchor="w", padx=16)
+                     text_color=theme.MUTED).pack(anchor="w", padx=16)
 
         bar = ctk.CTkProgressBar(card)
         bar.pack(fill="x", padx=16, pady=(6, 10))
@@ -102,7 +103,7 @@ class DashboardFrame(ctk.CTkScrollableFrame):
 
         for e in exercises:
             mark = "✔" if e["done"] else "○"
-            color = "#2ecc71" if e["done"] else "gray70"
+            color = theme.SUCCESS if e["done"] else theme.MUTED
             ctk.CTkLabel(card, text=f"{mark}  {e['name']}", text_color=color,
                          anchor="w").pack(fill="x", padx=20, pady=1)
         ctk.CTkLabel(card, text="").pack(pady=4)
@@ -122,11 +123,11 @@ class DashboardFrame(ctk.CTkScrollableFrame):
             title = goal.title + ("   ✔" if goal.achieved else "")
             ctk.CTkLabel(card, text=title, anchor="w"
                          ).pack(fill="x", padx=16, pady=(6, 0))
-            options = {"progress_color": "#2ecc71"} if goal.achieved else {}
+            options = {"progress_color": theme.SUCCESS} if goal.achieved else {}
             bar = ctk.CTkProgressBar(card, **options)
             bar.pack(fill="x", padx=16, pady=(2, 0))
             bar.set(goal.get_progress())
-            ctk.CTkLabel(card, text=goal.progress_text(), text_color="gray60",
+            ctk.CTkLabel(card, text=goal.progress_text(), text_color=theme.MUTED,
                          font=ctk.CTkFont(size=12), anchor="w"
                          ).pack(fill="x", padx=16)
 
@@ -134,7 +135,7 @@ class DashboardFrame(ctk.CTkScrollableFrame):
         summary = f"{goals['achieved']} of {goals['total']} goals achieved"
         if hidden > 0:
             summary += f"  •  {hidden} more not shown"
-        ctk.CTkLabel(card, text=summary, text_color="gray60",
+        ctk.CTkLabel(card, text=summary, text_color=theme.MUTED,
                      font=ctk.CTkFont(size=12), anchor="w"
                      ).pack(fill="x", padx=16, pady=(10, 4))
         ctk.CTkButton(card, text="View All Goals", height=28,
@@ -152,10 +153,11 @@ class DashboardFrame(ctk.CTkScrollableFrame):
             line.pack(fill="x", padx=16, pady=3)
             line.grid_columnconfigure(1, weight=1)
             ctk.CTkLabel(line, text=session.session_date, width=90, anchor="w",
-                         text_color="gray60").grid(row=0, column=0)
+                         text_color=theme.MUTED).grid(row=0, column=0)
             ctk.CTkLabel(line, text=session.plan_name, anchor="w"
                          ).grid(row=0, column=1, sticky="w")
-            ctk.CTkLabel(line, text=f"{session.duration_min} min", text_color="gray60"
+            ctk.CTkLabel(line, text=f"{session.duration_min} min",
+                         text_color=theme.MUTED
                          ).grid(row=0, column=2)
         ctk.CTkButton(card, text="View Full History", height=28,
                       command=self.on_view_history
@@ -167,6 +169,5 @@ class DashboardFrame(ctk.CTkScrollableFrame):
                       command=self.on_start_workout
                       ).pack(fill="x", padx=16, pady=6)
         ctk.CTkButton(card, text="＋  Add Exercise", height=40,
-                      fg_color="transparent", border_width=2,
-                      command=self.on_add_exercise
+                      command=self.on_add_exercise, **theme.outline_button()
                       ).pack(fill="x", padx=16, pady=(6, 16))

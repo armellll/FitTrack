@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import theme
 from goals import format_number
 from ui_helpers import page_header, make_card
 
@@ -23,12 +24,12 @@ class ProgressFrame(ctk.CTkFrame):
                     ("workouts", "Workouts This Month"),
                     ("records", "Personal Records")]
         for i, (key, caption) in enumerate(captions):
-            card = ctk.CTkFrame(stats, corner_radius=14)
+            card = ctk.CTkFrame(stats, corner_radius=14, fg_color=theme.CARD)
             card.grid(row=0, column=i, padx=10, pady=10, sticky="nsew")
-            value_label = ctk.CTkLabel(card, text="0",
+            value_label = ctk.CTkLabel(card, text="0", text_color=theme.PRIMARY,
                                        font=ctk.CTkFont(size=30, weight="bold"))
             value_label.pack(padx=16, pady=(14, 0))
-            ctk.CTkLabel(card, text=caption, text_color="gray60"
+            ctk.CTkLabel(card, text=caption, text_color=theme.MUTED
                          ).pack(padx=16, pady=(0, 14))
             self.stat_labels[key] = value_label
 
@@ -57,7 +58,7 @@ class ProgressFrame(ctk.CTkFrame):
                                             command=lambda value: self.render_trend())
         self.trend_menu.pack(anchor="w", padx=16, pady=(0, 6))
 
-        self.trend_note = ctk.CTkLabel(card, text="", text_color="gray60", anchor="w",
+        self.trend_note = ctk.CTkLabel(card, text="", text_color=theme.MUTED, anchor="w",
                                        justify="left", wraplength=320,
                                        font=ctk.CTkFont(size=12))
         self.trend_note.pack(fill="x", padx=16, pady=(0, 8))
@@ -79,14 +80,15 @@ class ProgressFrame(ctk.CTkFrame):
         if not records:
             ctk.CTkLabel(self.records_frame,
                          text="No records yet.\nFinish a workout to set your first one.",
-                         text_color="gray60").pack(pady=30)
+                         text_color=theme.MUTED).pack(pady=30)
         for name, value in records:
             row = ctk.CTkFrame(self.records_frame, fg_color="transparent")
             row.pack(fill="x", padx=8, pady=4)
             row.grid_columnconfigure(0, weight=1)
             ctk.CTkLabel(row, text=name, anchor="w"
                          ).grid(row=0, column=0, sticky="w")
-            ctk.CTkLabel(row, text=value, font=ctk.CTkFont(weight="bold")
+            ctk.CTkLabel(row, text=value, text_color=theme.PRIMARY,
+                         font=ctk.CTkFont(weight="bold")
                          ).grid(row=0, column=1)
 
         names = [self.ALL] + self.tracker.exercise_names(self.user_id)
@@ -113,7 +115,7 @@ class ProgressFrame(ctk.CTkFrame):
         for label, value in points:
             ctk.CTkLabel(self.trend_frame,
                          text=f"{label}   {format_number(value)} {unit}",
-                         anchor="w", text_color="gray60"
+                         anchor="w", text_color=theme.MUTED
                          ).pack(fill="x", padx=16)
             bar = ctk.CTkProgressBar(self.trend_frame, height=14)
             bar.pack(fill="x", padx=16, pady=(2, 10))
@@ -122,4 +124,4 @@ class ProgressFrame(ctk.CTkFrame):
         if highest == 0:
             ctk.CTkLabel(self.trend_frame,
                          text="No data for the last 6 weeks yet.",
-                         text_color="gray60").pack(pady=6)
+                         text_color=theme.MUTED).pack(pady=6)

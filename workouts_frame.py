@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import theme
 from ui_helpers import page_header
 from exercises_frame import ExercisesFrame
 from planner_frame import PlannerFrame
@@ -9,7 +10,8 @@ class WorkoutsFrame(ctk.CTkFrame):
         super().__init__(master, fg_color="transparent")
         page_header(self, "Workouts", "Manage your exercises and build your plans")
 
-        self.tabs = ctk.CTkTabview(self, command=self.on_tab_change)
+        self.tabs = ctk.CTkTabview(self, command=self.on_tab_change,
+                                   **theme.tabview_options())
         self.tabs.pack(fill="both", expand=True, padx=10, pady=10)
         self.tabs.add("Exercise Library")
         self.tabs.add("Plans")
