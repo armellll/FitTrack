@@ -4,6 +4,7 @@ from datetime import date
 
 import customtkinter as ctk
 import theme
+from date_picker import DateButton
 from sessions import WorkoutSession
 from ui_helpers import page_header, make_card
 
@@ -30,7 +31,7 @@ class RecordingFrame(ctk.CTkFrame):
         # ---------- top bar ----------
         top = make_card(self)
         top.pack(fill="x", padx=10, pady=(10, 4))
-        top.grid_columnconfigure(5, weight=1)
+        top.grid_columnconfigure(6, weight=1)
 
         ctk.CTkLabel(top, text="Plan").grid(row=0, column=0, padx=(16, 8), pady=14)
         plan_names = list(self.plans) + [FREE_WORKOUT]
@@ -42,9 +43,11 @@ class RecordingFrame(ctk.CTkFrame):
         self.date_entry = ctk.CTkEntry(top, width=120)
         self.date_entry.insert(0, date.today().isoformat())
         self.date_entry.grid(row=0, column=3)
+        DateButton(top, self.date_entry, max_date=date.today()
+                   ).grid(row=0, column=4, padx=(6, 0))
 
         ctk.CTkButton(top, text="▶  Start Workout", width=150, command=self.start
-                      ).grid(row=0, column=4, padx=16)
+                      ).grid(row=0, column=5, padx=16)
 
         self.message_label = ctk.CTkLabel(self, text="", anchor="w", justify="left",
                                           wraplength=800)

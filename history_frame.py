@@ -1,7 +1,9 @@
 import tkinter.messagebox as messagebox
+from datetime import date
 
 import customtkinter as ctk
 import theme
+from date_picker import DateButton
 from history import describe_entry
 from ui_helpers import page_header, make_card, make_row
 
@@ -27,22 +29,29 @@ class HistoryFrame(ctk.CTkFrame):
         filter_card.pack(fill="x", padx=10, pady=10)
         bar = ctk.CTkFrame(filter_card, fg_color="transparent")
         bar.pack(fill="x", padx=16, pady=(14, 4))
-        bar.grid_columnconfigure(2, weight=1)
+        bar.grid_columnconfigure(4, weight=1)
 
-        self.from_entry = ctk.CTkEntry(bar, placeholder_text="From (YYYY-MM-DD)", width=150)
-        self.from_entry.grid(row=0, column=0, padx=(0, 8))
-        self.to_entry = ctk.CTkEntry(bar, placeholder_text="To (YYYY-MM-DD)", width=150)
-        self.to_entry.grid(row=0, column=1, padx=(0, 8))
-        self.exercise_entry = ctk.CTkEntry(bar, placeholder_text="Exercise name")
-        self.exercise_entry.grid(row=0, column=2, sticky="ew", padx=(0, 8))
+        self.from_entry = ctk.CTkEntry(bar, placeholder_text="From date", width=120)
+        self.from_entry.grid(row=0, column=0)
+        DateButton(bar, self.from_entry, max_date=date.today(), allow_clear=True
+                   ).grid(row=0, column=1, padx=(4, 10))
+
+        self.to_entry = ctk.CTkEntry(bar, placeholder_text="To date", width=120)
+        self.to_entry.grid(row=0, column=2)
+        DateButton(bar, self.to_entry, max_date=date.today(), allow_clear=True
+                   ).grid(row=0, column=3, padx=(4, 10))
+
+        self.exercise_entry = ctk.CTkEntry(bar, placeholder_text="Exercise name",
+                                           width=110)
+        self.exercise_entry.grid(row=0, column=4, sticky="ew", padx=(0, 8))
         for entry in (self.from_entry, self.to_entry, self.exercise_entry):
             entry.bind("<Return>", lambda event: self.apply_filter())
 
         ctk.CTkButton(bar, text="Filter", width=80, command=self.apply_filter
-                      ).grid(row=0, column=3, padx=(0, 6))
+                      ).grid(row=0, column=5, padx=(0, 6))
         ctk.CTkButton(bar, text="Clear", width=70, command=self.clear_filter,
                       **theme.outline_button()
-                      ).grid(row=0, column=4)
+                      ).grid(row=0, column=6)
 
         self.message_label = ctk.CTkLabel(filter_card, text="",
                                           text_color=theme.ERROR_TEXT, anchor="w")

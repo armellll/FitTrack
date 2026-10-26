@@ -1,7 +1,9 @@
 import tkinter.messagebox as messagebox
+from datetime import date
 
 import customtkinter as ctk
 import theme
+from date_picker import DateButton
 from exercises import ExerciseManager
 from goals import GOAL_TYPES, format_number
 from ui_helpers import page_header, make_card, make_row
@@ -65,8 +67,13 @@ class GoalsFrame(ctk.CTkFrame):
         self.value_entry.pack(fill="x", padx=12, pady=(2, 10))
 
         ctk.CTkLabel(form, text="Deadline (optional)", anchor="w").pack(fill="x", padx=12)
-        self.deadline_entry = ctk.CTkEntry(form, placeholder_text="YYYY-MM-DD")
-        self.deadline_entry.pack(fill="x", padx=12, pady=(2, 10))
+        deadline_row = ctk.CTkFrame(form, fg_color="transparent")
+        deadline_row.pack(fill="x", padx=12, pady=(2, 10))
+        deadline_row.grid_columnconfigure(0, weight=1)
+        self.deadline_entry = ctk.CTkEntry(deadline_row, placeholder_text="YYYY-MM-DD")
+        self.deadline_entry.grid(row=0, column=0, sticky="ew")
+        DateButton(deadline_row, self.deadline_entry, min_date=date.today(),
+                   allow_clear=True).grid(row=0, column=1, padx=(6, 0))
 
         self.message_label = ctk.CTkLabel(form, text="", wraplength=250,
                                           anchor="w", justify="left")
