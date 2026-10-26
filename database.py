@@ -87,6 +87,13 @@ class DatabaseManager:
                 deadline TEXT NOT NULL DEFAULT '',
                 start_date TEXT NOT NULL
             );
+
+            CREATE INDEX IF NOT EXISTS idx_entries_session
+                ON session_entries (session_id);
+            CREATE INDEX IF NOT EXISTS idx_sessions_user_date
+                ON sessions (user_id, session_date);
+            CREATE INDEX IF NOT EXISTS idx_plan_exercises_plan
+                ON plan_exercises (plan_id);
         """)
         self._connection.commit()
 
